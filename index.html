@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portale NoteSpese demo</title>
+<style>
+  :root {
+    --bg: #f4f5f8; --surface: #ffffff; --text: #1b1f3b; --muted: #5b6075; --line: #d6d9e3;
+    --accent: #1b4fbf; --accent-text: #ffffff; --warn-bg: #fff6d6; --warn-text: #6b5300;
+    --ok-bg: #e3f4e8; --ok-text: #1d5c33; --err: #b3261e; --head: #1b1f3b; --head-text: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14161f; --surface: #1e2130; --text: #e8eaf2; --muted: #a3a8bd; --line: #353a50;
+      --accent: #6d97ff; --accent-text: #0d1020; --warn-bg: #3a3214; --warn-text: #f3dc8a;
+      --ok-bg: #173523; --ok-text: #a5e2b8; --err: #ff8a80; --head: #0d0f18; --head-text: #e8eaf2;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161f; --surface: #1e2130; --text: #e8eaf2; --muted: #a3a8bd; --line: #353a50;
+    --accent: #6d97ff; --accent-text: #0d1020; --warn-bg: #3a3214; --warn-text: #f3dc8a;
+    --ok-bg: #173523; --ok-text: #a5e2b8; --err: #ff8a80; --head: #0d0f18; --head-text: #e8eaf2;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.45 "Segoe UI", Arial, sans-serif; }
+  header { background: var(--head); color: var(--head-text); padding: 14px 24px; }
+  header h1 { margin: 0; font-size: 22px; }
+  header p { margin: 2px 0 0; font-size: 14px; opacity: .85; }
+  .banner { background: var(--warn-bg); color: var(--warn-text); padding: 8px 24px; font-size: 14px; font-weight: 600; }
+  main { max-width: 1120px; margin: 0 auto; padding: 24px 16px 48px; }
+  section { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+  h2 { margin: 0 0 14px; font-size: 19px; }
+  .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  label { display: block; font-weight: 600; font-size: 15px; margin-bottom: 6px; }
+  .hint { font-weight: 400; color: var(--muted); font-size: 13px; }
+  input, select { width: 100%; padding: 9px 10px; font: inherit; color: var(--text); background: var(--surface);
+    border: 1px solid var(--line); border-radius: 6px; }
+  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 860px; }
+  th { text-align: left; font-size: 14px; color: var(--muted); padding: 6px 6px; border-bottom: 1px solid var(--line); }
+  td { padding: 6px; vertical-align: top; border-bottom: 1px solid var(--line); }
+  td.n { font-weight: 700; width: 44px; padding-top: 14px; }
+  .col-date { width: 140px; } .col-cat { width: 220px; } .col-imp { width: 120px; } .col-del { width: 110px; }
+  button { font: inherit; font-weight: 600; border-radius: 6px; padding: 10px 18px; cursor: pointer; border: 1px solid var(--accent); }
+  .primary { background: var(--accent); color: var(--accent-text); }
+  .secondary { background: var(--surface); color: var(--accent); }
+  .link { background: none; border: none; color: var(--err); padding: 8px 4px; font-size: 14px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 16px; }
+  .total { margin-left: auto; font-size: 18px; font-weight: 700; }
+  .errors { color: var(--err); font-weight: 600; margin-top: 12px; }
+  .errors:empty { display: none; }
+  .ok { background: var(--ok-bg); color: var(--ok-text); border-radius: 10px; padding: 20px; }
+  .ok h2 { color: var(--ok-text); }
+  .big { font-size: 28px; font-weight: 800; letter-spacing: .5px; }
+  .hidden { display: none; }
+  .small { font-size: 14px; color: var(--muted); }
+  @media (max-width: 600px) { header, .banner { padding-left: 16px; padding-right: 16px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Portale NoteSpese</h1>
+  <p>Ambiente demo del corso «AI per i processi»</p>
+</header>
+<div class="banner">Sito dimostrativo con dati fittizi: non è un sistema aziendale reale. Le bozze restano solo in questo browser.</div>
+
+<main>
+  <div id="form-view">
+    <section aria-labelledby="h-dati">
+      <h2 id="h-dati">1. Dati della trasferta</h2>
+      <div class="fields">
+        <div>
+          <label for="trf">Codice trasferta <span class="hint">(formato TRF-AAAA-NNNN)</span></label>
+          <input id="trf" name="trf" placeholder="TRF-2026-0412" autocomplete="off">
+        </div>
+        <div>
+          <label for="dipendente">Dipendente <span class="hint">(email)</span></label>
+          <input id="dipendente" name="dipendente" placeholder="nome.cognome@azienda.it" autocomplete="off">
+        </div>
+        <div>
+          <label for="destinazione">Destinazione</label>
+          <input id="destinazione" name="destinazione" placeholder="Roma" autocomplete="off">
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="h-voci">
+      <h2 id="h-voci">2. Voci di spesa</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>N.</th><th class="col-date">Data <span class="hint">(gg/mm/aaaa)</span></th><th class="col-cat">Categoria</th>
+              <th>Descrizione</th><th class="col-imp">Importo (€)</th><th>Note</th><th class="col-del"></th></tr>
+          </thead>
+          <tbody id="voci"></tbody>
+        </table>
+      </div>
+      <div class="actions">
+        <button type="button" class="secondary" id="add">+ Aggiungi voce</button>
+        <span class="total">Totale: <span id="totale">0,00 €</span></span>
+      </div>
+    </section>
+
+    <section aria-labelledby="h-invio">
+      <h2 id="h-invio">3. Salvataggio</h2>
+      <p class="small">La bozza viene salvata con un numero NS-AAAA-NNNN. L'invio per approvazione si fa in un secondo momento.</p>
+      <div class="actions">
+        <button type="button" class="primary" id="save">Salva bozza</button>
+      </div>
+      <div class="errors" id="errors" role="alert"></div>
+    </section>
+  </div>
+
+  <div id="done-view" class="hidden">
+    <section class="ok" aria-live="polite">
+      <h2>Bozza salvata</h2>
+      <p>Numero bozza</p>
+      <p class="big" id="numero"></p>
+      <p id="riepilogo"></p>
+      <div class="actions"><button type="button" class="primary" id="new">Nuova nota spese</button></div>
+    </section>
+  </div>
+
+  <section aria-labelledby="h-bozze">
+    <h2 id="h-bozze">Le mie bozze</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Numero</th><th>Trasferta</th><th>Dipendente</th><th>Destinazione</th><th>Voci</th><th>Totale</th><th>Salvata il</th></tr></thead>
+        <tbody id="bozze"><tr><td colspan="7" class="small">Nessuna bozza salvata.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  var CATEGORIE = [
+    ["ALL", "ALL – Alloggio"], ["VIT", "VIT – Vitto"], ["RAP", "RAP – Rappresentanza"], ["TRE", "TRE – Treno"],
+    ["AER", "AER – Aereo"], ["TAX", "TAX – Taxi, NCC, ride sharing"], ["MPU", "MPU – Mezzi pubblici"],
+    ["NOL", "NOL – Noleggio auto"], ["KMP", "KMP – Km auto propria"], ["PED", "PED – Pedaggi"],
+    ["PAR", "PAR – Parcheggi"], ["LAV", "LAV – Lavanderia"], ["VAR", "VAR – Varie"]
+  ];
+  var KEY = "notespese-demo-bozze";
+  var memory = [];
+  var tbody = document.getElementById("voci");
+
+  function load() {
+    try { var raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : memory; } catch (e) { return memory; }
+  }
+  function store(list) {
+    memory = list;
+    try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) { /* storage non disponibile */ }
+  }
+  function parseImporto(s) {
+    s = String(s || "").trim().replace(/€/g, "").replace(/\s/g, "");
+    if (!s) return NaN;
+    if (s.indexOf(",") > -1) s = s.replace(/\./g, "").replace(",", ".");
+    return /^\d+(\.\d{1,2})?$/.test(s) ? parseFloat(s) : NaN;
+  }
+  function euro(n) { return n.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €"; }
+  function el(tag, attrs) {
+    var e = document.createElement(tag);
+    for (var k in attrs) { if (k === "text") e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]); }
+    return e;
+  }
+
+  function renumber() {
+    Array.prototype.forEach.call(tbody.rows, function (tr, i) {
+      var n = i + 1;
+      tr.cells[0].textContent = n;
+      var f = tr.querySelectorAll("input, select");
+      var names = ["Data", "Categoria", "Descrizione", "Importo", "Note"];
+      for (var j = 0; j < f.length; j++) {
+        f[j].setAttribute("aria-label", "Voce " + n + " – " + names[j]);
+        f[j].id = "voce-" + n + "-" + names[j].toLowerCase();
+      }
+      tr.querySelector(".link").setAttribute("aria-label", "Rimuovi voce " + n);
+    });
+    updateTotal();
+  }
+  function addRow() {
+    var tr = document.createElement("tr");
+    tr.appendChild(el("td", { "class": "n" }));
+    var td = el("td"); td.appendChild(el("input", { placeholder: "gg/mm/aaaa", "data-f": "data", autocomplete: "off" })); tr.appendChild(td);
+    td = el("td"); var sel = el("select", { "data-f": "categoria" });
+    sel.appendChild(el("option", { value: "", text: "Seleziona…" }));
+    CATEGORIE.forEach(function (c) { sel.appendChild(el("option", { value: c[0], text: c[1] })); });
+    td.appendChild(sel); tr.appendChild(td);
+    td = el("td"); td.appendChild(el("input", { placeholder: "es. Hotel 2 notti", "data-f": "descrizione", autocomplete: "off" })); tr.appendChild(td);
+    td = el("td"); td.appendChild(el("input", { placeholder: "0,00", inputmode: "decimal", "data-f": "importo", autocomplete: "off" })); tr.appendChild(td);
+    td = el("td"); td.appendChild(el("input", { placeholder: "motivazione, partecipanti…", "data-f": "note", autocomplete: "off" })); tr.appendChild(td);
+    td = el("td"); var rm = el("button", { type: "button", "class": "link", text: "Rimuovi" });
+    rm.addEventListener("click", function () { if (tbody.rows.length > 1) { tr.remove(); renumber(); } });
+    td.appendChild(rm); tr.appendChild(td);
+    tbody.appendChild(tr);
+    renumber();
+    return tr;
+  }
+  function readRows() {
+    return Array.prototype.map.call(tbody.rows, function (tr) {
+      var o = {};
+      tr.querySelectorAll("[data-f]").forEach(function (f) { o[f.getAttribute("data-f")] = f.value.trim(); });
+      return o;
+    });
+  }
+  function updateTotal() {
+    var t = readRows().reduce(function (s, r) { var v = parseImporto(r.importo); return s + (isNaN(v) ? 0 : v); }, 0);
+    document.getElementById("totale").textContent = euro(t);
+    return t;
+  }
+  tbody.addEventListener("input", updateTotal);
+
+  function renderBozze() {
+    var list = load(), b = document.getElementById("bozze");
+    b.innerHTML = "";
+    if (!list.length) { var tr = el("tr"); var td = el("td", { colspan: "7", "class": "small", text: "Nessuna bozza salvata." }); tr.appendChild(td); b.appendChild(tr); return; }
+    list.slice().reverse().forEach(function (x) {
+      var tr = el("tr");
+      [x.numero, x.trf, x.dipendente, x.destinazione, String(x.voci.length), euro(x.totale), x.salvata].forEach(function (v) { tr.appendChild(el("td", { text: v })); });
+      b.appendChild(tr);
+    });
+  }
+
+  document.getElementById("add").addEventListener("click", function () {
+    var tr = addRow(); tr.querySelector("input").focus();
+  });
+
+  document.getElementById("save").addEventListener("click", function () {
+    var errs = [];
+    var trf = document.getElementById("trf").value.trim().toUpperCase();
+    var dip = document.getElementById("dipendente").value.trim();
+    var dest = document.getElementById("destinazione").value.trim();
+    if (!/^TRF-\d{4}-\d{4}$/.test(trf)) errs.push("Codice trasferta non valido: usa il formato TRF-AAAA-NNNN.");
+    if (!dip) errs.push("Inserisci il dipendente.");
+    var rows = readRows().filter(function (r) { return r.data || r.categoria || r.descrizione || r.importo || r.note; });
+    if (!rows.length) errs.push("Inserisci almeno una voce di spesa.");
+    rows.forEach(function (r, i) {
+      var n = i + 1;
+      if (!/^\d{2}\/\d{2}\/\d{4}$/.test(r.data)) errs.push("Voce " + n + ": data nel formato gg/mm/aaaa.");
+      if (!r.categoria) errs.push("Voce " + n + ": scegli la categoria.");
+      if (!r.descrizione) errs.push("Voce " + n + ": inserisci la descrizione.");
+      if (isNaN(parseImporto(r.importo))) errs.push("Voce " + n + ": importo non valido (es. 150,00).");
+    });
+    var box = document.getElementById("errors");
+    box.textContent = errs.join(" ");
+    if (errs.length) return;
+
+    var list = load();
+    var numero = "NS-" + new Date().getFullYear() + "-" + String(137 + list.length).padStart(4, "0");
+    var totale = rows.reduce(function (s, r) { return s + parseImporto(r.importo); }, 0);
+    list.push({ numero: numero, trf: trf, dipendente: dip, destinazione: dest, voci: rows, totale: totale,
+      salvata: new Date().toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" }) });
+    store(list);
+    document.getElementById("numero").textContent = numero;
+    document.getElementById("riepilogo").textContent = "Trasferta " + trf + " · " + rows.length + " voci · totale " + euro(totale) + ".";
+    document.getElementById("form-view").classList.add("hidden");
+    document.getElementById("done-view").classList.remove("hidden");
+    renderBozze();
+    window.scrollTo(0, 0);
+  });
+
+  document.getElementById("new").addEventListener("click", function () {
+    ["trf", "dipendente", "destinazione"].forEach(function (id) { document.getElementById(id).value = ""; });
+    tbody.innerHTML = ""; addRow();
+    document.getElementById("errors").textContent = "";
+    document.getElementById("done-view").classList.add("hidden");
+    document.getElementById("form-view").classList.remove("hidden");
+  });
+
+  addRow();
+  renderBozze();
+})();
+</script>
+</body>
+</html>
